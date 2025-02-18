@@ -1,40 +1,17 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 
 #ifndef GOOGLE_PROTOBUF_METADATA_LITE_H__
 #define GOOGLE_PROTOBUF_METADATA_LITE_H__
 
 #include <string>
 
+#include "absl/base/optimization.h"
 #include "google/protobuf/arena.h"
-#include "google/protobuf/port.h"
 #include "google/protobuf/port.h"
 
 // Must be included last.
@@ -71,6 +48,13 @@ class PROTOBUF_EXPORT InternalMetadata {
     ptr_ = reinterpret_cast<intptr_t>(arena);
   }
 
+  // Delete will delete the unknown fields only if they weren't allocated on an
+  // arena.  Then it updates the flags so that if you call
+  // have_unknown_fields(), it will return false.
+  //
+  // It is designed to be used as part of a Message class's destructor call, so
+  // that when control eventually gets to ~InternalMetadata(), we don't need to
+  // check for have_unknown_fields() again.
   template <typename T>
   void Delete() {
     // Note that Delete<> should be called not more than once.
@@ -79,24 +63,8 @@ class PROTOBUF_EXPORT InternalMetadata {
     }
   }
 
-  // DeleteReturnArena will delete the unknown fields only if they weren't
-  // allocated on an arena.  Then it updates the flags so that if you call
-  // have_unknown_fields(), it will return false.  Finally, it returns the
-  // current value of arena().  It is designed to be used as part of a
-  // Message class's destructor call, so that when control eventually gets
-  // to ~InternalMetadata(), we don't need to check for have_unknown_fields()
-  // again.
-  template <typename T>
-  Arena* DeleteReturnArena() {
-    if (have_unknown_fields()) {
-      return DeleteOutOfLineHelper<T>();
-    } else {
-      return PtrValue<Arena>();
-    }
-  }
-
   PROTOBUF_NDEBUG_INLINE Arena* arena() const {
-    if (PROTOBUF_PREDICT_FALSE(have_unknown_fields())) {
+    if (ABSL_PREDICT_FALSE(have_unknown_fields())) {
       return PtrValue<ContainerBase>()->arena;
     } else {
       return PtrValue<Arena>();
@@ -114,7 +82,7 @@ class PROTOBUF_EXPORT InternalMetadata {
   template <typename T>
   PROTOBUF_NDEBUG_INLINE const T& unknown_fields(
       const T& (*default_instance)()) const {
-    if (PROTOBUF_PREDICT_FALSE(have_unknown_fields())) {
+    if (ABSL_PREDICT_FALSE(have_unknown_fields())) {
       return PtrValue<Container<T>>()->unknown_fields;
     } else {
       return default_instance();
@@ -123,7 +91,7 @@ class PROTOBUF_EXPORT InternalMetadata {
 
   template <typename T>
   PROTOBUF_NDEBUG_INLINE T* mutable_unknown_fields() {
-    if (PROTOBUF_PREDICT_TRUE(have_unknown_fields())) {
+    if (ABSL_PREDICT_TRUE(have_unknown_fields())) {
       return &PtrValue<Container<T>>()->unknown_fields;
     } else {
       return mutable_unknown_fields_slow<T>();
@@ -143,7 +111,8 @@ class PROTOBUF_EXPORT InternalMetadata {
     }
   }
 
-  PROTOBUF_NDEBUG_INLINE void InternalSwap(InternalMetadata* other) {
+  PROTOBUF_NDEBUG_INLINE void InternalSwap(
+      InternalMetadata* PROTOBUF_RESTRICT other) {
     std::swap(ptr_, other->ptr_);
   }
 
@@ -190,15 +159,11 @@ class PROTOBUF_EXPORT InternalMetadata {
   };
 
   template <typename T>
-  PROTOBUF_NOINLINE Arena* DeleteOutOfLineHelper() {
-    if (auto* a = arena()) {
-      ptr_ = reinterpret_cast<intptr_t>(a);
-      return a;
-    } else {
-      delete PtrValue<Container<T>>();
-      ptr_ = 0;
-      return nullptr;
-    }
+  PROTOBUF_NOINLINE void DeleteOutOfLineHelper() {
+    delete PtrValue<Container<T>>();
+    // TODO:  This store is load-bearing.  Since we are destructing
+    // the message at this point, see if we can eliminate it.
+    ptr_ = 0;
   }
 
   template <typename T>
@@ -252,7 +217,7 @@ extern template PROTOBUF_EXPORT void
 InternalMetadata::DoMergeFrom<UnknownFieldSet>(const UnknownFieldSet& other);
 extern template PROTOBUF_EXPORT void
 InternalMetadata::DoSwap<UnknownFieldSet>(UnknownFieldSet* other);
-extern template PROTOBUF_EXPORT Arena*
+extern template PROTOBUF_EXPORT void
 InternalMetadata::DeleteOutOfLineHelper<UnknownFieldSet>();
 extern template PROTOBUF_EXPORT UnknownFieldSet*
 InternalMetadata::mutable_unknown_fields_slow<UnknownFieldSet>();

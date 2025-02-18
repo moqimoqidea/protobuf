@@ -7,7 +7,7 @@ set -eu
 # Some base locations.
 readonly ScriptDir=$(dirname "$(echo $0 | sed -e "s,^\([^/]\),$(pwd)/\1,")")
 readonly ProtoRootDir="${ScriptDir}/../.."
-readonly BazelFlags="${BAZEL_FLAGS:---announce_rc --macos_minimum_os=10.9}"
+readonly BazelFlags="${BAZEL_FLAGS:---announce_rc --macos_minimum_os=11.0}"
 
 # Invoke with BAZEL=bazelisk to use that instead.
 readonly BazelBin="${BAZEL:-bazel}"
@@ -192,20 +192,8 @@ fi
 # Ensure the WKT sources checked in are current.
 objectivec/generate_well_known_types.sh --check-only
 
-header "Checking on the ObjC Runtime Code"
-# Some of the kokoro machines don't have python3 yet, so fall back to python if need be.
-if hash python3 >/dev/null 2>&1 ; then
-  LOCAL_PYTHON=python3
-else
-  LOCAL_PYTHON=python
-fi
-"${LOCAL_PYTHON}" objectivec/DevTools/pddm_tests.py
-if ! "${LOCAL_PYTHON}" objectivec/DevTools/pddm.py --dry-run objectivec/*.[hm] objectivec/Tests/*.[hm] ; then
-  echo ""
-  echo "Update by running:"
-  echo "   objectivec/DevTools/pddm.py objectivec/*.[hm] objectivec/Tests/*.[hm]"
-  exit 1
-fi
+header "Checking on the ObjC Runtime pddm expansions"
+${BazelBin} test //objectivec:sources_pddm_expansion_test $BazelFlags
 
 readonly XCODE_VERSION_LINE="$(xcodebuild -version | grep Xcode\  )"
 readonly XCODE_VERSION="${XCODE_VERSION_LINE/Xcode /}"  # drop the prefix.
@@ -229,6 +217,11 @@ if [[ "${DO_XCODE_IOS_TESTS}" == "yes" ]] ; then
     13.* | 14.*)
       XCODEBUILD_TEST_BASE_IOS+=(
           -destination "platform=iOS Simulator,name=iPhone 13,OS=latest"
+      )
+      ;;
+    15.* | 16.*)
+      XCODEBUILD_TEST_BASE_IOS+=(
+          -destination "platform=iOS Simulator,name=iPhone 15,OS=latest"
       )
       ;;
     * )
@@ -289,6 +282,11 @@ if [[ "${DO_XCODE_TVOS_TESTS}" == "yes" ]] ; then
     13.* | 14.*)
       XCODEBUILD_TEST_BASE_TVOS+=(
         -destination "platform=tvOS Simulator,name=Apple TV 4K (2nd generation),OS=latest"
+      )
+      ;;
+    15.* | 16.*)
+      XCODEBUILD_TEST_BASE_TVOS+=(
+        -destination "platform=tvOS Simulator,name=Apple TV 4K (3rd generation),OS=latest"
       )
       ;;
     * )

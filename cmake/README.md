@@ -1,9 +1,9 @@
 This directory contains *CMake* files that can be used to build protobuf.
 
-You need to have [CMake](http://www.cmake.org) and
-[Git](http://git-scm.com) installed on your computer before proceeding.  We
-currently support CMake 3.5 and newer on both [Windows](#windows-builds) and
-[Linux](#linux-builds).
+You need to have [CMake](http://www.cmake.org),
+[Git](http://git-scm.com), and [Abseil](https://github.com/abseil/abseil-cpp)
+installed on your computer before proceeding.  We currently support CMake 3.5
+and newer on both [Windows](#windows-builds) and [Linux](#linux-builds).
 
 Most of the instructions will be given using CMake's command-line interface, but
 the same actions can be performed using appropriate GUI tools.
@@ -12,14 +12,18 @@ the same actions can be performed using appropriate GUI tools.
 
 ## C++ Version
 
-By default, CMake will use whatever C++ version is the system default.  Since
-protobuf requires C++14 or newer, sometimes you will need to explicitly override
-this.  For example, the following:
+By default, CMake will use whatever C++ version is the system default. Since
+protobuf requires C++17 or newer, sometimes you will need to explicitly override
+this. For example, the following:
 
-    cmake . -DCMAKE_CXX_STANDARD=14
-    cmake --build
+```
+cmake . -DCMAKE_CXX_STANDARD=17
+cmake --build .
+```
 
-will build protobuf using C++14 (see [CXX_STANDARD](https://cmake.org/cmake/help/latest/prop_tgt/CXX_STANDARD.html#prop_tgt:CXX_STANDARD){.external} for all available options).
+will build protobuf using C++17 (see
+[CXX_STANDARD](https://cmake.org/cmake/help/latest/prop_tgt/CXX_STANDARD.html#prop_tgt:CXX_STANDARD){.external}
+for all available options).
 
 # Windows Builds
 
@@ -67,11 +71,6 @@ You can get the latest stable source packages from the release page:
 
     https://github.com/protocolbuffers/protobuf/releases/latest
 
-For example: if you only need C++, download `protobuf-cpp-[VERSION].tar.gz`; if
-you need C++ and Java, download `protobuf-java-[VERSION].tar.gz` (every package
-contains C++ source already); if you need C++ and multiple other languages,
-download `protobuf-all-[VERSION].tar.gz`.
-
 Or you can use git to clone from protobuf git repository.
 
      C:\Path\to> mkdir src & cd src
@@ -84,13 +83,6 @@ Go to the project folder:
 
      C:\Path\to\src> cd protobuf
      C:\Path\to\src\protobuf>
-
-Remember to update any submodules if you are using git clone (you can skip this
-step if you are using a release .tar.gz or .zip package):
-
-```console
-C:\Path\to\src\protobuf> git submodule update --init --recursive
-```
 
 Good. Now you are ready for *CMake* configuration.
 
@@ -119,6 +111,24 @@ Create a temporary *build* folder and change your working directory to it:
      cd C:\Path\to\build\protobuf
      C:\Path\to\build\protobuf>
 
+During configuration you will also be specifying where CMake should expect to
+find your Abseil installation. To do so, set `-DCMAKE_PREFIX_PATH` to the path
+where you installed Abseil.
+
+For example:
+
+```console
+C:\Path\to\build\protobuf> cmake -S. -Bcmake-out \
+                           -DCMAKE_INSTALL_PREFIX=/tmp/protobuf \
+                           -DCMAKE_CXX_STANDARD=17 \
+                           -DCMAKE_PREFIX_PATH=/tmp/absl  # Path to where I installed Abseil
+```
+
+If the installation of a dependency can't be found, CMake will default to
+downloading and building a copy from GitHub. To prevent this and make it an
+error condition, you can optionally set
+`-Dprotobuf_LOCAL_DEPENDENCIES_ONLY=ON`.
+
 The *Makefile* and *Ninja* generators can build the project in only one configuration, so you need to build
 a separate folder for each configuration.
 
@@ -145,15 +155,14 @@ It will generate *Visual Studio* solution file *protobuf.sln* in current directo
 
 Unit tests are being built along with the rest of protobuf. The unit tests require Google Mock (now a part of Google Test).
 
-A copy of [Google Test](https://github.com/google/googletest) is included as a Git submodule in the `third-party/googletest` folder.
-(You do need to initialize the Git submodules as explained above.)
+By default, a local copy of [Google Test](https://github.com/google/googletest)
+will be downloaded during CMake configuration.
 
 Alternately, you may want to use protobuf in a larger set-up, you may want to use that standard CMake approach where
 you build and install a shared copy of Google Test.
 
-After you've built and installed your Google Test copy, you need add the following definition to your *cmake* command line
-during the configuration step: `-Dprotobuf_USE_EXTERNAL_GTEST=ON`.
-This will cause the standard CMake `find_package(GTest REQUIRED)` to be used.
+After you've built and installed your Google Test copy, the standard CMake
+`find_package(GTest)` will use it.
 
 [find_package](https://cmake.org/cmake/help/latest/command/find_package.html) will search in a default location,
 which on Windows is *C:\Program Files*. This is most likely not what you want. You will want instead to search for

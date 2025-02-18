@@ -25,49 +25,48 @@ namespace ProtobufUnittest {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
             "Ci5nb29nbGUvcHJvdG9idWYvdW5pdHRlc3RfcHJvdG8zX29wdGlvbmFsLnBy",
-            "b3RvEhFwcm90b2J1Zl91bml0dGVzdBogZ29vZ2xlL3Byb3RvYnVmL2Rlc2Ny",
-            "aXB0b3IucHJvdG8isQoKElRlc3RQcm90bzNPcHRpb25hbBIbCg5vcHRpb25h",
-            "bF9pbnQzMhgBIAEoBUgAiAEBEhsKDm9wdGlvbmFsX2ludDY0GAIgASgDSAGI",
-            "AQESHAoPb3B0aW9uYWxfdWludDMyGAMgASgNSAKIAQESHAoPb3B0aW9uYWxf",
-            "dWludDY0GAQgASgESAOIAQESHAoPb3B0aW9uYWxfc2ludDMyGAUgASgRSASI",
-            "AQESHAoPb3B0aW9uYWxfc2ludDY0GAYgASgSSAWIAQESHQoQb3B0aW9uYWxf",
-            "Zml4ZWQzMhgHIAEoB0gGiAEBEh0KEG9wdGlvbmFsX2ZpeGVkNjQYCCABKAZI",
-            "B4gBARIeChFvcHRpb25hbF9zZml4ZWQzMhgJIAEoD0gIiAEBEh4KEW9wdGlv",
-            "bmFsX3NmaXhlZDY0GAogASgQSAmIAQESGwoOb3B0aW9uYWxfZmxvYXQYCyAB",
-            "KAJICogBARIcCg9vcHRpb25hbF9kb3VibGUYDCABKAFIC4gBARIaCg1vcHRp",
-            "b25hbF9ib29sGA0gASgISAyIAQESHAoPb3B0aW9uYWxfc3RyaW5nGA4gASgJ",
-            "SA2IAQESGwoOb3B0aW9uYWxfYnl0ZXMYDyABKAxIDogBARIeCg1vcHRpb25h",
-            "bF9jb3JkGBAgASgJQgIIAUgPiAEBElkKF29wdGlvbmFsX25lc3RlZF9tZXNz",
-            "YWdlGBIgASgLMjMucHJvdG9idWZfdW5pdHRlc3QuVGVzdFByb3RvM09wdGlv",
-            "bmFsLk5lc3RlZE1lc3NhZ2VIEIgBARJZChNsYXp5X25lc3RlZF9tZXNzYWdl",
-            "GBMgASgLMjMucHJvdG9idWZfdW5pdHRlc3QuVGVzdFByb3RvM09wdGlvbmFs",
-            "Lk5lc3RlZE1lc3NhZ2VCAigBSBGIAQESUwoUb3B0aW9uYWxfbmVzdGVkX2Vu",
-            "dW0YFSABKA4yMC5wcm90b2J1Zl91bml0dGVzdC5UZXN0UHJvdG8zT3B0aW9u",
-            "YWwuTmVzdGVkRW51bUgSiAEBEhYKDnNpbmd1bGFyX2ludDMyGBYgASgFEhYK",
-            "DnNpbmd1bGFyX2ludDY0GBcgASgDGicKDU5lc3RlZE1lc3NhZ2USDwoCYmIY",
-            "ASABKAVIAIgBAUIFCgNfYmIiSgoKTmVzdGVkRW51bRIPCgtVTlNQRUNJRklF",
-            "RBAAEgcKA0ZPTxABEgcKA0JBUhACEgcKA0JBWhADEhAKA05FRxD/////////",
-            "//8BQhEKD19vcHRpb25hbF9pbnQzMkIRCg9fb3B0aW9uYWxfaW50NjRCEgoQ",
-            "X29wdGlvbmFsX3VpbnQzMkISChBfb3B0aW9uYWxfdWludDY0QhIKEF9vcHRp",
-            "b25hbF9zaW50MzJCEgoQX29wdGlvbmFsX3NpbnQ2NEITChFfb3B0aW9uYWxf",
-            "Zml4ZWQzMkITChFfb3B0aW9uYWxfZml4ZWQ2NEIUChJfb3B0aW9uYWxfc2Zp",
-            "eGVkMzJCFAoSX29wdGlvbmFsX3NmaXhlZDY0QhEKD19vcHRpb25hbF9mbG9h",
-            "dEISChBfb3B0aW9uYWxfZG91YmxlQhAKDl9vcHRpb25hbF9ib29sQhIKEF9v",
-            "cHRpb25hbF9zdHJpbmdCEQoPX29wdGlvbmFsX2J5dGVzQhAKDl9vcHRpb25h",
-            "bF9jb3JkQhoKGF9vcHRpb25hbF9uZXN0ZWRfbWVzc2FnZUIWChRfbGF6eV9u",
-            "ZXN0ZWRfbWVzc2FnZUIXChVfb3B0aW9uYWxfbmVzdGVkX2VudW0iiQIKGVRl",
-            "c3RQcm90bzNPcHRpb25hbE1lc3NhZ2USUgoObmVzdGVkX21lc3NhZ2UYASAB",
-            "KAsyOi5wcm90b2J1Zl91bml0dGVzdC5UZXN0UHJvdG8zT3B0aW9uYWxNZXNz",
-            "YWdlLk5lc3RlZE1lc3NhZ2USYAoXb3B0aW9uYWxfbmVzdGVkX21lc3NhZ2UY",
-            "AiABKAsyOi5wcm90b2J1Zl91bml0dGVzdC5UZXN0UHJvdG8zT3B0aW9uYWxN",
-            "ZXNzYWdlLk5lc3RlZE1lc3NhZ2VIAIgBARoaCg1OZXN0ZWRNZXNzYWdlEgkK",
-            "AXMYASABKAlCGgoYX29wdGlvbmFsX25lc3RlZF9tZXNzYWdlIqkBChhQcm90",
-            "bzNPcHRpb25hbEV4dGVuc2lvbnMyPAoPZXh0X25vX29wdGlvbmFsEh8uZ29v",
-            "Z2xlLnByb3RvYnVmLk1lc3NhZ2VPcHRpb25zGIjN2akBIAEoBTJBChFleHRf",
-            "d2l0aF9vcHRpb25hbBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9u",
-            "cxiJzdmpASABKAWIAQE6DMDozM0KCMjozM0KEEI4CiFjb20uZ29vZ2xlLnBy",
-            "b3RvYnVmLnRlc3RpbmcucHJvdG9QAaoCEFByb3RvYnVmVW5pdHRlc3RiBnBy",
-            "b3RvMw=="));
+            "b3RvEg9wcm90bzJfdW5pdHRlc3QaIGdvb2dsZS9wcm90b2J1Zi9kZXNjcmlw",
+            "dG9yLnByb3RvIqsKChJUZXN0UHJvdG8zT3B0aW9uYWwSGwoOb3B0aW9uYWxf",
+            "aW50MzIYASABKAVIAIgBARIbCg5vcHRpb25hbF9pbnQ2NBgCIAEoA0gBiAEB",
+            "EhwKD29wdGlvbmFsX3VpbnQzMhgDIAEoDUgCiAEBEhwKD29wdGlvbmFsX3Vp",
+            "bnQ2NBgEIAEoBEgDiAEBEhwKD29wdGlvbmFsX3NpbnQzMhgFIAEoEUgEiAEB",
+            "EhwKD29wdGlvbmFsX3NpbnQ2NBgGIAEoEkgFiAEBEh0KEG9wdGlvbmFsX2Zp",
+            "eGVkMzIYByABKAdIBogBARIdChBvcHRpb25hbF9maXhlZDY0GAggASgGSAeI",
+            "AQESHgoRb3B0aW9uYWxfc2ZpeGVkMzIYCSABKA9ICIgBARIeChFvcHRpb25h",
+            "bF9zZml4ZWQ2NBgKIAEoEEgJiAEBEhsKDm9wdGlvbmFsX2Zsb2F0GAsgASgC",
+            "SAqIAQESHAoPb3B0aW9uYWxfZG91YmxlGAwgASgBSAuIAQESGgoNb3B0aW9u",
+            "YWxfYm9vbBgNIAEoCEgMiAEBEhwKD29wdGlvbmFsX3N0cmluZxgOIAEoCUgN",
+            "iAEBEhsKDm9wdGlvbmFsX2J5dGVzGA8gASgMSA6IAQESHgoNb3B0aW9uYWxf",
+            "Y29yZBgQIAEoCUICCAFID4gBARJXChdvcHRpb25hbF9uZXN0ZWRfbWVzc2Fn",
+            "ZRgSIAEoCzIxLnByb3RvMl91bml0dGVzdC5UZXN0UHJvdG8zT3B0aW9uYWwu",
+            "TmVzdGVkTWVzc2FnZUgQiAEBElcKE2xhenlfbmVzdGVkX21lc3NhZ2UYEyAB",
+            "KAsyMS5wcm90bzJfdW5pdHRlc3QuVGVzdFByb3RvM09wdGlvbmFsLk5lc3Rl",
+            "ZE1lc3NhZ2VCAigBSBGIAQESUQoUb3B0aW9uYWxfbmVzdGVkX2VudW0YFSAB",
+            "KA4yLi5wcm90bzJfdW5pdHRlc3QuVGVzdFByb3RvM09wdGlvbmFsLk5lc3Rl",
+            "ZEVudW1IEogBARIWCg5zaW5ndWxhcl9pbnQzMhgWIAEoBRIWCg5zaW5ndWxh",
+            "cl9pbnQ2NBgXIAEoAxonCg1OZXN0ZWRNZXNzYWdlEg8KAmJiGAEgASgFSACI",
+            "AQFCBQoDX2JiIkoKCk5lc3RlZEVudW0SDwoLVU5TUEVDSUZJRUQQABIHCgNG",
+            "T08QARIHCgNCQVIQAhIHCgNCQVoQAxIQCgNORUcQ////////////AUIRCg9f",
+            "b3B0aW9uYWxfaW50MzJCEQoPX29wdGlvbmFsX2ludDY0QhIKEF9vcHRpb25h",
+            "bF91aW50MzJCEgoQX29wdGlvbmFsX3VpbnQ2NEISChBfb3B0aW9uYWxfc2lu",
+            "dDMyQhIKEF9vcHRpb25hbF9zaW50NjRCEwoRX29wdGlvbmFsX2ZpeGVkMzJC",
+            "EwoRX29wdGlvbmFsX2ZpeGVkNjRCFAoSX29wdGlvbmFsX3NmaXhlZDMyQhQK",
+            "El9vcHRpb25hbF9zZml4ZWQ2NEIRCg9fb3B0aW9uYWxfZmxvYXRCEgoQX29w",
+            "dGlvbmFsX2RvdWJsZUIQCg5fb3B0aW9uYWxfYm9vbEISChBfb3B0aW9uYWxf",
+            "c3RyaW5nQhEKD19vcHRpb25hbF9ieXRlc0IQCg5fb3B0aW9uYWxfY29yZEIa",
+            "Chhfb3B0aW9uYWxfbmVzdGVkX21lc3NhZ2VCFgoUX2xhenlfbmVzdGVkX21l",
+            "c3NhZ2VCFwoVX29wdGlvbmFsX25lc3RlZF9lbnVtIoUCChlUZXN0UHJvdG8z",
+            "T3B0aW9uYWxNZXNzYWdlElAKDm5lc3RlZF9tZXNzYWdlGAEgASgLMjgucHJv",
+            "dG8yX3VuaXR0ZXN0LlRlc3RQcm90bzNPcHRpb25hbE1lc3NhZ2UuTmVzdGVk",
+            "TWVzc2FnZRJeChdvcHRpb25hbF9uZXN0ZWRfbWVzc2FnZRgCIAEoCzI4LnBy",
+            "b3RvMl91bml0dGVzdC5UZXN0UHJvdG8zT3B0aW9uYWxNZXNzYWdlLk5lc3Rl",
+            "ZE1lc3NhZ2VIAIgBARoaCg1OZXN0ZWRNZXNzYWdlEgkKAXMYASABKAlCGgoY",
+            "X29wdGlvbmFsX25lc3RlZF9tZXNzYWdlIqkBChhQcm90bzNPcHRpb25hbEV4",
+            "dGVuc2lvbnMyPAoPZXh0X25vX29wdGlvbmFsEh8uZ29vZ2xlLnByb3RvYnVm",
+            "Lk1lc3NhZ2VPcHRpb25zGIjN2akBIAEoBTJBChFleHRfd2l0aF9vcHRpb25h",
+            "bBIfLmdvb2dsZS5wcm90b2J1Zi5NZXNzYWdlT3B0aW9ucxiJzdmpASABKAWI",
+            "AQE6DMDozM0KCMjozM0KEEI4CiFjb20uZ29vZ2xlLnByb3RvYnVmLnRlc3Rp",
+            "bmcucHJvdG9QAaoCEFByb3RvYnVmVW5pdHRlc3RiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::Google.Protobuf.Reflection.DescriptorReflection.Descriptor, },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -80,6 +79,7 @@ namespace ProtobufUnittest {
 
   }
   #region Messages
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class TestProto3Optional : pb::IMessage<TestProto3Optional>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -148,6 +148,8 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_int32" field.</summary>
     public const int OptionalInt32FieldNumber = 1;
+    private readonly static int OptionalInt32DefaultValue = 0;
+
     private int optionalInt32_;
     /// <summary>
     /// Singular
@@ -155,7 +157,7 @@ namespace ProtobufUnittest {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int OptionalInt32 {
-      get { if ((_hasBits0 & 1) != 0) { return optionalInt32_; } else { return 0; } }
+      get { if ((_hasBits0 & 1) != 0) { return optionalInt32_; } else { return OptionalInt32DefaultValue; } }
       set {
         _hasBits0 |= 1;
         optionalInt32_ = value;
@@ -176,11 +178,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_int64" field.</summary>
     public const int OptionalInt64FieldNumber = 2;
+    private readonly static long OptionalInt64DefaultValue = 0L;
+
     private long optionalInt64_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long OptionalInt64 {
-      get { if ((_hasBits0 & 2) != 0) { return optionalInt64_; } else { return 0L; } }
+      get { if ((_hasBits0 & 2) != 0) { return optionalInt64_; } else { return OptionalInt64DefaultValue; } }
       set {
         _hasBits0 |= 2;
         optionalInt64_ = value;
@@ -201,11 +205,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_uint32" field.</summary>
     public const int OptionalUint32FieldNumber = 3;
+    private readonly static uint OptionalUint32DefaultValue = 0;
+
     private uint optionalUint32_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint OptionalUint32 {
-      get { if ((_hasBits0 & 4) != 0) { return optionalUint32_; } else { return 0; } }
+      get { if ((_hasBits0 & 4) != 0) { return optionalUint32_; } else { return OptionalUint32DefaultValue; } }
       set {
         _hasBits0 |= 4;
         optionalUint32_ = value;
@@ -226,11 +232,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_uint64" field.</summary>
     public const int OptionalUint64FieldNumber = 4;
+    private readonly static ulong OptionalUint64DefaultValue = 0UL;
+
     private ulong optionalUint64_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong OptionalUint64 {
-      get { if ((_hasBits0 & 8) != 0) { return optionalUint64_; } else { return 0UL; } }
+      get { if ((_hasBits0 & 8) != 0) { return optionalUint64_; } else { return OptionalUint64DefaultValue; } }
       set {
         _hasBits0 |= 8;
         optionalUint64_ = value;
@@ -251,11 +259,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_sint32" field.</summary>
     public const int OptionalSint32FieldNumber = 5;
+    private readonly static int OptionalSint32DefaultValue = 0;
+
     private int optionalSint32_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int OptionalSint32 {
-      get { if ((_hasBits0 & 16) != 0) { return optionalSint32_; } else { return 0; } }
+      get { if ((_hasBits0 & 16) != 0) { return optionalSint32_; } else { return OptionalSint32DefaultValue; } }
       set {
         _hasBits0 |= 16;
         optionalSint32_ = value;
@@ -276,11 +286,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_sint64" field.</summary>
     public const int OptionalSint64FieldNumber = 6;
+    private readonly static long OptionalSint64DefaultValue = 0L;
+
     private long optionalSint64_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long OptionalSint64 {
-      get { if ((_hasBits0 & 32) != 0) { return optionalSint64_; } else { return 0L; } }
+      get { if ((_hasBits0 & 32) != 0) { return optionalSint64_; } else { return OptionalSint64DefaultValue; } }
       set {
         _hasBits0 |= 32;
         optionalSint64_ = value;
@@ -301,11 +313,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_fixed32" field.</summary>
     public const int OptionalFixed32FieldNumber = 7;
+    private readonly static uint OptionalFixed32DefaultValue = 0;
+
     private uint optionalFixed32_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public uint OptionalFixed32 {
-      get { if ((_hasBits0 & 64) != 0) { return optionalFixed32_; } else { return 0; } }
+      get { if ((_hasBits0 & 64) != 0) { return optionalFixed32_; } else { return OptionalFixed32DefaultValue; } }
       set {
         _hasBits0 |= 64;
         optionalFixed32_ = value;
@@ -326,11 +340,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_fixed64" field.</summary>
     public const int OptionalFixed64FieldNumber = 8;
+    private readonly static ulong OptionalFixed64DefaultValue = 0UL;
+
     private ulong optionalFixed64_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public ulong OptionalFixed64 {
-      get { if ((_hasBits0 & 128) != 0) { return optionalFixed64_; } else { return 0UL; } }
+      get { if ((_hasBits0 & 128) != 0) { return optionalFixed64_; } else { return OptionalFixed64DefaultValue; } }
       set {
         _hasBits0 |= 128;
         optionalFixed64_ = value;
@@ -351,11 +367,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_sfixed32" field.</summary>
     public const int OptionalSfixed32FieldNumber = 9;
+    private readonly static int OptionalSfixed32DefaultValue = 0;
+
     private int optionalSfixed32_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int OptionalSfixed32 {
-      get { if ((_hasBits0 & 256) != 0) { return optionalSfixed32_; } else { return 0; } }
+      get { if ((_hasBits0 & 256) != 0) { return optionalSfixed32_; } else { return OptionalSfixed32DefaultValue; } }
       set {
         _hasBits0 |= 256;
         optionalSfixed32_ = value;
@@ -376,11 +394,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_sfixed64" field.</summary>
     public const int OptionalSfixed64FieldNumber = 10;
+    private readonly static long OptionalSfixed64DefaultValue = 0L;
+
     private long optionalSfixed64_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public long OptionalSfixed64 {
-      get { if ((_hasBits0 & 512) != 0) { return optionalSfixed64_; } else { return 0L; } }
+      get { if ((_hasBits0 & 512) != 0) { return optionalSfixed64_; } else { return OptionalSfixed64DefaultValue; } }
       set {
         _hasBits0 |= 512;
         optionalSfixed64_ = value;
@@ -401,11 +421,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_float" field.</summary>
     public const int OptionalFloatFieldNumber = 11;
+    private readonly static float OptionalFloatDefaultValue = 0F;
+
     private float optionalFloat_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public float OptionalFloat {
-      get { if ((_hasBits0 & 1024) != 0) { return optionalFloat_; } else { return 0F; } }
+      get { if ((_hasBits0 & 1024) != 0) { return optionalFloat_; } else { return OptionalFloatDefaultValue; } }
       set {
         _hasBits0 |= 1024;
         optionalFloat_ = value;
@@ -426,11 +448,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_double" field.</summary>
     public const int OptionalDoubleFieldNumber = 12;
+    private readonly static double OptionalDoubleDefaultValue = 0D;
+
     private double optionalDouble_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public double OptionalDouble {
-      get { if ((_hasBits0 & 2048) != 0) { return optionalDouble_; } else { return 0D; } }
+      get { if ((_hasBits0 & 2048) != 0) { return optionalDouble_; } else { return OptionalDoubleDefaultValue; } }
       set {
         _hasBits0 |= 2048;
         optionalDouble_ = value;
@@ -451,11 +475,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_bool" field.</summary>
     public const int OptionalBoolFieldNumber = 13;
+    private readonly static bool OptionalBoolDefaultValue = false;
+
     private bool optionalBool_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public bool OptionalBool {
-      get { if ((_hasBits0 & 4096) != 0) { return optionalBool_; } else { return false; } }
+      get { if ((_hasBits0 & 4096) != 0) { return optionalBool_; } else { return OptionalBoolDefaultValue; } }
       set {
         _hasBits0 |= 4096;
         optionalBool_ = value;
@@ -476,11 +502,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_string" field.</summary>
     public const int OptionalStringFieldNumber = 14;
+    private readonly static string OptionalStringDefaultValue = "";
+
     private string optionalString_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string OptionalString {
-      get { return optionalString_ ?? ""; }
+      get { return optionalString_ ?? OptionalStringDefaultValue; }
       set {
         optionalString_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
@@ -500,11 +528,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_bytes" field.</summary>
     public const int OptionalBytesFieldNumber = 15;
+    private readonly static pb::ByteString OptionalBytesDefaultValue = pb::ByteString.Empty;
+
     private pb::ByteString optionalBytes_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public pb::ByteString OptionalBytes {
-      get { return optionalBytes_ ?? pb::ByteString.Empty; }
+      get { return optionalBytes_ ?? OptionalBytesDefaultValue; }
       set {
         optionalBytes_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
@@ -524,11 +554,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_cord" field.</summary>
     public const int OptionalCordFieldNumber = 16;
+    private readonly static string OptionalCordDefaultValue = "";
+
     private string optionalCord_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public string OptionalCord {
-      get { return optionalCord_ ?? ""; }
+      get { return optionalCord_ ?? OptionalCordDefaultValue; }
       set {
         optionalCord_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
       }
@@ -572,11 +604,13 @@ namespace ProtobufUnittest {
 
     /// <summary>Field number for the "optional_nested_enum" field.</summary>
     public const int OptionalNestedEnumFieldNumber = 21;
+    private readonly static global::ProtobufUnittest.TestProto3Optional.Types.NestedEnum OptionalNestedEnumDefaultValue = global::ProtobufUnittest.TestProto3Optional.Types.NestedEnum.Unspecified;
+
     private global::ProtobufUnittest.TestProto3Optional.Types.NestedEnum optionalNestedEnum_;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::ProtobufUnittest.TestProto3Optional.Types.NestedEnum OptionalNestedEnum {
-      get { if ((_hasBits0 & 8192) != 0) { return optionalNestedEnum_; } else { return global::ProtobufUnittest.TestProto3Optional.Types.NestedEnum.Unspecified; } }
+      get { if ((_hasBits0 & 8192) != 0) { return optionalNestedEnum_; } else { return OptionalNestedEnumDefaultValue; } }
       set {
         _hasBits0 |= 8192;
         optionalNestedEnum_ = value;
@@ -1047,7 +1081,11 @@ namespace ProtobufUnittest {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1152,7 +1190,11 @@ namespace ProtobufUnittest {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1267,6 +1309,7 @@ namespace ProtobufUnittest {
         [pbr::OriginalName("NEG")] Neg = -1,
       }
 
+      [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       public sealed partial class NestedMessage : pb::IMessage<NestedMessage>
       #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
           , pb::IBufferMessage
@@ -1315,6 +1358,8 @@ namespace ProtobufUnittest {
 
         /// <summary>Field number for the "bb" field.</summary>
         public const int BbFieldNumber = 1;
+        private readonly static int BbDefaultValue = 0;
+
         private int bb_;
         /// <summary>
         /// The field name "b" fails to compile in proto1 because it conflicts with
@@ -1324,7 +1369,7 @@ namespace ProtobufUnittest {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
         [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
         public int Bb {
-          get { if ((_hasBits0 & 1) != 0) { return bb_; } else { return 0; } }
+          get { if ((_hasBits0 & 1) != 0) { return bb_; } else { return BbDefaultValue; } }
           set {
             _hasBits0 |= 1;
             bb_ = value;
@@ -1442,7 +1487,11 @@ namespace ProtobufUnittest {
         #else
           uint tag;
           while ((tag = input.ReadTag()) != 0) {
-            switch(tag) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
               default:
                 _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
                 break;
@@ -1461,7 +1510,11 @@ namespace ProtobufUnittest {
         void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
           uint tag;
           while ((tag = input.ReadTag()) != 0) {
-            switch(tag) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
               default:
                 _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
                 break;
@@ -1481,6 +1534,7 @@ namespace ProtobufUnittest {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class TestProto3OptionalMessage : pb::IMessage<TestProto3OptionalMessage>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -1671,7 +1725,11 @@ namespace ProtobufUnittest {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -1700,7 +1758,11 @@ namespace ProtobufUnittest {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
@@ -1728,6 +1790,7 @@ namespace ProtobufUnittest {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static partial class Types {
+      [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
       public sealed partial class NestedMessage : pb::IMessage<NestedMessage>
       #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
           , pb::IBufferMessage
@@ -1883,7 +1946,11 @@ namespace ProtobufUnittest {
         #else
           uint tag;
           while ((tag = input.ReadTag()) != 0) {
-            switch(tag) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
               default:
                 _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
                 break;
@@ -1902,7 +1969,11 @@ namespace ProtobufUnittest {
         void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
           uint tag;
           while ((tag = input.ReadTag()) != 0) {
-            switch(tag) {
+          if ((tag & 7) == 4) {
+            // Abort on any end group tag.
+            return;
+          }
+          switch(tag) {
               default:
                 _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
                 break;
@@ -1922,6 +1993,7 @@ namespace ProtobufUnittest {
 
   }
 
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class Proto3OptionalExtensions : pb::IMessage<Proto3OptionalExtensions>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -2048,7 +2120,11 @@ namespace ProtobufUnittest {
     #else
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
@@ -2063,7 +2139,11 @@ namespace ProtobufUnittest {
     void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
       uint tag;
       while ((tag = input.ReadTag()) != 0) {
-        switch(tag) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;

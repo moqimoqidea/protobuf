@@ -1,32 +1,9 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 
 // Author: kenton@google.com (Kenton Varda)
 //  Based on original Protocol Buffers design by
@@ -219,13 +196,13 @@ Tokenizer::Tokenizer(ZeroCopyInputStream* input,
                      ErrorCollector* error_collector)
     : input_(input),
       error_collector_(error_collector),
-      buffer_(NULL),
+      buffer_(nullptr),
       buffer_size_(0),
       buffer_pos_(0),
       read_error_(false),
       line_(0),
       column_(0),
-      record_target_(NULL),
+      record_target_(nullptr),
       record_start_(-1),
       allow_f_after_float_(false),
       comment_style_(CPP_COMMENT_STYLE),
@@ -235,6 +212,7 @@ Tokenizer::Tokenizer(ZeroCopyInputStream* input,
   current_.column = 0;
   current_.end_column = 0;
   current_.type = TYPE_START;
+  previous_ = current_;
 
   Refresh();
 }
@@ -293,14 +271,14 @@ void Tokenizer::Refresh() {
   }
 
   // If we're in a token, append the rest of the buffer to it.
-  if (record_target_ != NULL && record_start_ < buffer_size_) {
+  if (record_target_ != nullptr && record_start_ < buffer_size_) {
     record_target_->append(buffer_ + record_start_,
                            buffer_size_ - record_start_);
     record_start_ = 0;
   }
 
-  const void* data = NULL;
-  buffer_ = NULL;
+  const void* data = nullptr;
+  buffer_ = nullptr;
   buffer_pos_ = 0;
   do {
     if (!input_->Next(&data, &buffer_size_)) {
@@ -324,14 +302,14 @@ inline void Tokenizer::RecordTo(std::string* target) {
 
 inline void Tokenizer::StopRecording() {
   // Note:  The if() is necessary because some STL implementations crash when
-  //   you call string::append(NULL, 0), presumably because they are trying to
-  //   be helpful by detecting the NULL pointer, even though there's nothing
-  //   wrong with reading zero bytes from NULL.
+  //   you call string::append(nullptr, 0), presumably because they are trying
+  //   to be helpful by detecting the nullptr pointer, even though there's
+  //   nothing wrong with reading zero bytes from nullptr.
   if (buffer_pos_ != record_start_) {
     record_target_->append(buffer_ + record_start_,
                            buffer_pos_ - record_start_);
   }
-  record_target_ = NULL;
+  record_target_ = nullptr;
   record_start_ = -1;
 }
 
@@ -518,21 +496,21 @@ Tokenizer::TokenType Tokenizer::ConsumeNumber(bool started_with_zero,
 }
 
 void Tokenizer::ConsumeLineComment(std::string* content) {
-  if (content != NULL) RecordTo(content);
+  if (content != nullptr) RecordTo(content);
 
   while (current_char_ != '\0' && current_char_ != '\n') {
     NextChar();
   }
   TryConsume('\n');
 
-  if (content != NULL) StopRecording();
+  if (content != nullptr) StopRecording();
 }
 
 void Tokenizer::ConsumeBlockComment(std::string* content) {
   int start_line = line_;
   int start_column = column_ - 2;
 
-  if (content != NULL) RecordTo(content);
+  if (content != nullptr) RecordTo(content);
 
   while (true) {
     while (current_char_ != '\0' && current_char_ != '*' &&
@@ -541,7 +519,7 @@ void Tokenizer::ConsumeBlockComment(std::string* content) {
     }
 
     if (TryConsume('\n')) {
-      if (content != NULL) StopRecording();
+      if (content != nullptr) StopRecording();
 
       // Consume leading whitespace and asterisk;
       ConsumeZeroOrMore<WhitespaceNoNewline>();
@@ -552,10 +530,10 @@ void Tokenizer::ConsumeBlockComment(std::string* content) {
         }
       }
 
-      if (content != NULL) RecordTo(content);
+      if (content != nullptr) RecordTo(content);
     } else if (TryConsume('*') && TryConsume('/')) {
       // End of comment.
-      if (content != NULL) {
+      if (content != nullptr) {
         StopRecording();
         // Strip trailing "*/".
         content->erase(content->size() - 2);
@@ -570,7 +548,7 @@ void Tokenizer::ConsumeBlockComment(std::string* content) {
       AddError("End-of-file inside block comment.");
       error_collector_->RecordError(start_line, start_column,
                                     "  Comment started here.");
-      if (content != NULL) StopRecording();
+      if (content != nullptr) StopRecording();
       break;
     }
   }
@@ -641,10 +619,10 @@ bool Tokenizer::Next() {
 
     switch (TryConsumeCommentStart()) {
       case LINE_COMMENT:
-        ConsumeLineComment(NULL);
+        ConsumeLineComment(nullptr);
         continue;
       case BLOCK_COMMENT:
-        ConsumeBlockComment(NULL);
+        ConsumeBlockComment(nullptr);
         continue;
       case SLASH_NOT_COMMENT:
         return true;
@@ -751,14 +729,14 @@ class CommentCollector {
         has_comment_(false),
         is_line_comment_(false),
         can_attach_to_prev_(true) {
-    if (prev_trailing_comments != NULL) prev_trailing_comments->clear();
-    if (detached_comments != NULL) detached_comments->clear();
-    if (next_leading_comments != NULL) next_leading_comments->clear();
+    if (prev_trailing_comments != nullptr) prev_trailing_comments->clear();
+    if (detached_comments != nullptr) detached_comments->clear();
+    if (next_leading_comments != nullptr) next_leading_comments->clear();
   }
 
   ~CommentCollector() {
     // Whatever is in the buffer is a leading comment.
-    if (next_leading_comments_ != NULL && has_comment_) {
+    if (next_leading_comments_ != nullptr && has_comment_) {
       comment_buffer_.swap(*next_leading_comments_);
     }
   }
@@ -796,13 +774,13 @@ class CommentCollector {
   void Flush() {
     if (has_comment_) {
       if (can_attach_to_prev_) {
-        if (prev_trailing_comments_ != NULL) {
+        if (prev_trailing_comments_ != nullptr) {
           prev_trailing_comments_->append(comment_buffer_);
         }
         has_trailing_comment_ = true;
         can_attach_to_prev_ = false;
       } else {
-        if (detached_comments_ != NULL) {
+        if (detached_comments_ != nullptr) {
           detached_comments_->push_back(comment_buffer_);
         }
       }
@@ -819,9 +797,9 @@ class CommentCollector {
 
     // If there's one comment, make sure it is detached.
     if (count == 1) {
-      if (has_trailing_comment_ && prev_trailing_comments_ != NULL) {
+      if (has_trailing_comment_ && prev_trailing_comments_ != nullptr) {
         std::string trail = *prev_trailing_comments_;
-        if (detached_comments_ != NULL) {
+        if (detached_comments_ != nullptr) {
           // push trailing comment to front of detached
           detached_comments_->insert(detached_comments_->begin(), 1, trail);
         }

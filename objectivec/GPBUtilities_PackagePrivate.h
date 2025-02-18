@@ -1,37 +1,15 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 
 #import <Foundation/Foundation.h>
 
 #import "GPBUtilities.h"
 
+#import "GPBDescriptor.h"
 #import "GPBDescriptor_PackagePrivate.h"
 
 // Macros for stringifying library symbols. These are used in the generated
@@ -42,6 +20,11 @@
 
 #define GPBNSStringify(S) @ #S
 #define GPBNSStringifySymbol(S) GPBNSStringify(S)
+
+// A type to represent an Objective C class.
+// This is actually an `objc_class` but the runtime headers will not allow us to
+// reference `objc_class`, so we have defined our own.
+typedef struct GPBObjcClass_t GPBObjcClass_t;
 
 // Macros for generating a Class from a class name. These are used in
 // the generated GPB descriptor classes wherever an Objective C class
@@ -71,15 +54,6 @@ GPB_INLINE void GPB_DEBUG_CHECK_RUNTIME_VERSIONS(void) {
 // GPB_DEBUG_CHECK_RUNTIME_VERSIONS() gates this with a better message; this
 // is just a final safety net to prevent otherwise hard to diagnose errors.
 void GPBRuntimeMatchFailure(void);
-
-// Legacy version of the checks, remove when GOOGLE_PROTOBUF_OBJC_GEN_VERSION
-// goes away (see more info in GPBBootstrap.h).
-void GPBCheckRuntimeVersionInternal(int32_t version);
-GPB_INLINE void GPBDebugCheckRuntimeVersion(void) {
-#if defined(DEBUG) && DEBUG
-  GPBCheckRuntimeVersionInternal(GOOGLE_PROTOBUF_OBJC_GEN_VERSION);
-#endif
-}
 
 // Conversion functions for de/serializing floating point types.
 
@@ -124,7 +98,7 @@ GPB_INLINE int64_t GPBLogicalRightShift64(int64_t value, int32_t spaces) {
 // negative values must be sign-extended to 64 bits to be varint encoded,
 // thus always taking 10 bytes on the wire.)
 GPB_INLINE int32_t GPBDecodeZigZag32(uint32_t n) {
-  return (int32_t)(GPBLogicalRightShift32((int32_t)n, 1) ^ -((int32_t)(n)&1));
+  return (int32_t)(GPBLogicalRightShift32((int32_t)n, 1) ^ -((int32_t)(n) & 1));
 }
 
 // Decode a ZigZag-encoded 64-bit value.  ZigZag encodes signed integers
@@ -132,7 +106,7 @@ GPB_INLINE int32_t GPBDecodeZigZag32(uint32_t n) {
 // negative values must be sign-extended to 64 bits to be varint encoded,
 // thus always taking 10 bytes on the wire.)
 GPB_INLINE int64_t GPBDecodeZigZag64(uint64_t n) {
-  return (int64_t)(GPBLogicalRightShift64((int64_t)n, 1) ^ -((int64_t)(n)&1));
+  return (int64_t)(GPBLogicalRightShift64((int64_t)n, 1) ^ -((int64_t)(n) & 1));
 }
 
 // Encode a ZigZag-encoded 32-bit value.  ZigZag encodes signed integers
@@ -200,9 +174,9 @@ GPB_INLINE BOOL GPBFieldStoresObject(GPBFieldDescriptor *field) {
   return GPBDataTypeIsObject(desc->dataType);
 }
 
-BOOL GPBGetHasIvar(GPBMessage *self, int32_t index, uint32_t fieldNumber);
+BOOL GPBGetHasIvar(GPBMessage *self, int32_t idx, uint32_t fieldNumber);
 void GPBSetHasIvar(GPBMessage *self, int32_t idx, uint32_t fieldNumber, BOOL value);
-uint32_t GPBGetHasOneof(GPBMessage *self, int32_t index);
+uint32_t GPBGetHasOneof(GPBMessage *self, int32_t idx);
 
 GPB_INLINE BOOL GPBGetHasIvarField(GPBMessage *self, GPBFieldDescriptor *field) {
   GPBMessageFieldDescription *fieldDesc = field->description_;

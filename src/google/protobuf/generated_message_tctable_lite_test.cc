@@ -1,40 +1,38 @@
 // Protocol Buffers - Google's data interchange format
 // Copyright 2008 Google Inc.  All rights reserved.
-// https://developers.google.com/protocol-buffers/
 //
-// Redistribution and use in source and binary forms, with or without
-// modification, are permitted provided that the following conditions are
-// met:
-//
-//     * Redistributions of source code must retain the above copyright
-// notice, this list of conditions and the following disclaimer.
-//     * Redistributions in binary form must reproduce the above
-// copyright notice, this list of conditions and the following disclaimer
-// in the documentation and/or other materials provided with the
-// distribution.
-//     * Neither the name of Google Inc. nor the names of its
-// contributors may be used to endorse or promote products derived from
-// this software without specific prior written permission.
-//
-// THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-// "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-// LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-// A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-// OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-// SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-// LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-// DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-// THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-// (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-// OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+// Use of this source code is governed by a BSD-style
+// license that can be found in the LICENSE file or at
+// https://developers.google.com/open-source/licenses/bsd
 
 #include <cstddef>
+#include <cstdint>
+#include <cstring>
 
-#include "google/protobuf/generated_message_tctable_impl.h"
 #include <gmock/gmock.h>
 #include <gtest/gtest.h>
+#include "absl/algorithm/container.h"
+#include "absl/log/absl_check.h"
+#include "absl/log/absl_log.h"
+#include "absl/strings/str_cat.h"
+#include "absl/strings/string_view.h"
 #include "absl/types/optional.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/descriptor_database.h"
+#include "google/protobuf/descriptor_visitor.h"
+#include "google/protobuf/generated_message_tctable_decl.h"
+#include "google/protobuf/generated_message_tctable_impl.h"
+#include "google/protobuf/io/coded_stream.h"
+#include "google/protobuf/message_lite.h"
+#include "google/protobuf/parse_context.h"
+#include "google/protobuf/port.h"
+#include "google/protobuf/unittest.pb.h"
 #include "google/protobuf/wire_format_lite.h"
+
+
+// clang-format off
+#include "google/protobuf/port_def.inc"
+// clang-format on
 
 namespace google {
 namespace protobuf {
@@ -42,6 +40,7 @@ namespace internal {
 
 namespace {
 
+using ::testing::ElementsAreArray;
 using ::testing::Eq;
 using ::testing::Not;
 using ::testing::Optional;
@@ -58,11 +57,10 @@ TcFieldData Xor2SerializedBytes(TcFieldData tfd, const char* ptr) {
 absl::optional<const char*> fallback_ptr_received;
 absl::optional<uint64_t> fallback_hasbits_received;
 absl::optional<uint64_t> fallback_tag_received;
-const char* FastParserGaveUp(::google::protobuf::MessageLite*, const char* ptr,
-                             ::google::protobuf::internal::ParseContext*,
-                             ::google::protobuf::internal::TcFieldData data,
-                             const ::google::protobuf::internal::TcParseTableBase*,
-                             uint64_t hasbits) {
+PROTOBUF_CC const char* FastParserGaveUp(
+    ::google::protobuf::MessageLite*, const char* ptr, ::google::protobuf::internal::ParseContext*,
+    ::google::protobuf::internal::TcFieldData data,
+    const ::google::protobuf::internal::TcParseTableBase*, uint64_t hasbits) {
   fallback_ptr_received = ptr;
   fallback_hasbits_received = hasbits;
   fallback_tag_received = data.tag();
@@ -103,7 +101,11 @@ TEST(FastVarints, NameHere) {
           0,                                             // num_aux_entries
           offsetof(decltype(parse_table), field_names),  // no aux_entries
           nullptr,                                       // default instance
+          nullptr,                                       // post_loop_handler
           FastParserGaveUp,                              // fallback
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,  // to_prefetch
+#endif              // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       // Fast Table:
       {{
@@ -294,7 +296,11 @@ TEST(IsEntryForFieldNumTest, Matcher) {
           0,           // num_field_entries
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       }};
   // clang-format on
   int table_field_numbers[] = {1, 2, 3};
@@ -333,6 +339,10 @@ class FindFieldEntryTest : public ::testing::Test {
     return TcParser::FieldName(&table.header, entry);
   }
 
+  static int FieldNumber(const TcParseTableBase* table, size_t index) {
+    return TcParser::FieldNumber(table, table->field_entries_begin() + index);
+  }
+
   // Calls the private `MessageName` function.
   template <size_t kFastTableSizeLog2, size_t kNumEntries, size_t kNumFieldAux,
             size_t kNameTableSize, size_t kFieldLookupTableSize>
@@ -345,6 +355,36 @@ class FindFieldEntryTest : public ::testing::Test {
   // Returns the number of fields scanned during a small scan.
   static constexpr int small_scan_size() { return TcParser::kMtSmallScanSize; }
 };
+
+TEST_F(FindFieldEntryTest, FieldNumberWorksForAllFields) {
+  // Look at all types registered in the binary and verify that field number
+  // calculation works for all the fields.
+  auto* gen_db = DescriptorPool::internal_generated_database();
+  std::vector<std::string> all_file_names;
+  gen_db->FindAllFileNames(&all_file_names);
+
+  for (const auto& filename : all_file_names) {
+    SCOPED_TRACE(filename);
+    const auto* file =
+        DescriptorPool::generated_pool()->FindFileByName(filename);
+    VisitDescriptors(*file, [&](const Descriptor& desc) {
+      SCOPED_TRACE(desc.full_name());
+      const auto* prototype =
+          MessageFactory::generated_factory()->GetPrototype(&desc);
+      const auto* tc_table = internal::GetClassData(*prototype)->tc_table;
+
+      std::vector<int> sorted_field_numbers;
+      for (auto* field : internal::FieldRange(&desc)) {
+        sorted_field_numbers.push_back(field->number());
+      }
+      absl::c_sort(sorted_field_numbers);
+
+      for (int i = 0; i < desc.field_count(); ++i) {
+        EXPECT_EQ(FieldNumber(tc_table, i), sorted_field_numbers[i]);
+      }
+    });
+  }
+}
 
 TEST_F(FindFieldEntryTest, SequentialFieldRange) {
   // Look up fields that are within the range of `lookup_table_offset`.
@@ -362,7 +402,11 @@ TEST_F(FindFieldEntryTest, SequentialFieldRange) {
           5,           // num_field_entries
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 2, 3, 4, 5, 111:
@@ -402,7 +446,11 @@ TEST_F(FindFieldEntryTest, SmallScanRange) {
           6,           // num_field_entries
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 1, 3, 4, 5, 7, 111:
@@ -450,7 +498,11 @@ TEST_F(FindFieldEntryTest, BinarySearchRange) {
           10,          // num_field_entries
           0, 0,        // num_aux_entries, aux_offset,
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       // field_lookup_table for 1, 3, 4, 5, 6, 8, 9, 11, 12, 70
@@ -495,7 +547,11 @@ TEST_F(FindFieldEntryTest, OutOfRange) {
           0,           // num_aux_entries
           offsetof(decltype(table), field_names),  // no aux_entries
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           {},          // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       {{// field lookup table
@@ -545,7 +601,11 @@ TEST_F(FindFieldEntryTest, EmptyMessage) {
           0,           // num_aux_entries
           offsetof(TableType, field_names),
           nullptr,     // default instance
+          nullptr,     // post_loop_handler
           nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+          nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
       },
       {},  // fast_entries
       {{// empty field lookup table
@@ -595,7 +655,11 @@ const TcParseTable<5, 134, 5, 2176, 55> test_all_types_table = {
         5,           // num_aux_entries
         offsetof(decltype(test_all_types_table), aux_entries),
         nullptr,     // default instance
+        nullptr,     // post_loop_handler
         nullptr,     // fallback function
+#ifdef PROTOBUF_PREFETCH_PARSE_TABLE
+        nullptr,     // to_prefetch
+#endif  // PROTOBUF_PREFETCH_PARSE_TABLE
     },
     {{
         // tail-call table
@@ -820,6 +884,110 @@ TEST_F(FindFieldEntryTest, BigMessage) {
   }
 }
 
+TEST(GeneratedMessageTctableLiteTest, PackedEnumSmallRange) {
+  // RepeatedField::Reserve(n) may set the capacity to something greater than n,
+  // and this "upgrade" algorithm can even be different depending on compiler
+  // optimizations!  This value is chosen such that -- with the current
+  // implementation of Reserve() -- Reserve(kNumVals) always results in a
+  // different final capacity than you'd get by adding elements one at a time.
+  constexpr int kNumVals = 1023;
+  proto2_unittest::TestPackedEnumSmallRange proto;
+  for (int i = 0; i < kNumVals; i++) {
+    proto.add_vals(proto2_unittest::TestPackedEnumSmallRange::FOO);
+  }
+
+  proto2_unittest::TestPackedEnumSmallRange new_proto;
+  new_proto.ParseFromString(proto.SerializeAsString());
+
+  // We should have reserved exactly the right size for new_proto's `vals`,
+  // rather than growing it on demand like we did in `proto`.
+  EXPECT_LT(new_proto.vals().Capacity(), proto.vals().Capacity());
+
+  // Check that new_proto's capacity is equal to exactly what we'd get from
+  // calling Reserve(n).
+  proto2_unittest::TestPackedEnumSmallRange empty_proto;
+  empty_proto.mutable_vals()->Reserve(kNumVals);
+  EXPECT_EQ(new_proto.vals().Capacity(), empty_proto.vals().Capacity());
+}
+
+// Create a serialized proto which falsely claims to have a packed array of
+// enums of length a little less than 2^31.  We merge this with a proto that
+// already has a few elements in this array.
+//
+// This test checks that the parser doesn't overflow an int32 when computing the
+// array's new length.
+TEST(GeneratedMessageTctableLiteTest, PackedEnumSmallRangeLargeSize) {
+  if constexpr (internal::HasAnySanitizer()) {
+    GTEST_SKIP() << "This test attempts to allocate 8GB of memory, which OOMs "
+                    "in sanitizer mode.";
+  }
+
+#ifdef _WIN32
+  // This test OOMs on Windows.  I think this is because Windows is committing
+  // the entirety of the 8GB malloc'ed range, whereas Linux maps it but doesn't
+  // commit it.
+  return;
+#endif
+
+  // This test is only meaningful on 64-bit platforms.  On 32-bit platforms, we
+  // can't allocate 2^31 4-byte elements anyway; that is a straightforward OOM.
+  if (sizeof(size_t) < 8) {
+    return;
+  }
+
+  // Create a serialized proto that contains just `field 1: length ~2^31`.  We
+  // don't put the actual data in there, just the field header.
+  uint8_t serialize_buffer[64];
+  uint8_t* serialize_ptr = serialize_buffer;
+  serialize_ptr = WireFormatLite::WriteTagToArray(
+      1, WireFormatLite::WIRETYPE_LENGTH_DELIMITED, serialize_ptr);
+  // INT32_MAX is not a valid array length because RepeatedField uses a bit of
+  // space for its metadata.  We can be a little short of it, that's fine.
+  serialize_ptr = WireFormatLite::WriteUInt32NoTagToArray(
+      std::numeric_limits<int32_t>::max() - 64, serialize_ptr);
+
+  absl::string_view serialized{
+      reinterpret_cast<char*>(&serialize_buffer[0]),
+      static_cast<size_t>(serialize_ptr - serialize_buffer)};
+
+  // This isn't a legal proto because the given array length (a little less than
+  // 2^31) doesn't match the actual array length (0).  But all we're checking
+  // for here is that we don't have UB when deserializing.
+  proto2_unittest::TestPackedEnumSmallRange proto;
+  // Add a few elements to the proto so that when we MergeFromString, the final
+  // array length is greater than INT32_MAX.
+  for (int i = 0; i < 128; i++) {
+    proto.add_vals(proto2_unittest::TestPackedEnumSmallRange::FOO);
+  }
+  EXPECT_FALSE(proto.MergeFromString(serialized));
+}
+
+TEST(GeneratedMessageTctableLiteTest,
+     PackedEnumSmallRangeSizeLargerThanInputSize) {
+  // Create a serialized proto that contains just `field 1: length 2^20`.  We
+  // don't put the actual data in there, just the field header.
+  uint8_t serialize_buffer[64];
+  uint8_t* serialize_ptr = serialize_buffer;
+  serialize_ptr = WireFormatLite::WriteTagToArray(
+      1, WireFormatLite::WIRETYPE_LENGTH_DELIMITED, serialize_ptr);
+  serialize_ptr =
+      WireFormatLite::WriteUInt32NoTagToArray(uint32_t{1} << 20, serialize_ptr);
+
+  absl::string_view serialized{
+      reinterpret_cast<char*>(&serialize_buffer[0]),
+      static_cast<size_t>(serialize_ptr - serialize_buffer)};
+
+  // The deserialized proto should reserve much less than 2^20 elements for
+  // field 1, because it notices that the input serialized proto is much smaller
+  // than 2^20 bytes.
+  proto2_unittest::TestPackedEnumSmallRange proto;
+  proto.MergeFromString(serialized);
+  EXPECT_LE(proto.vals().Capacity(), 2048);
+}
+
+
 }  // namespace internal
 }  // namespace protobuf
 }  // namespace google
+
+#include "google/protobuf/port_undef.inc"

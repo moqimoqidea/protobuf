@@ -1,4 +1,14 @@
-# Internal helpers for building the Python protobuf runtime.
+"""
+Internal helpers for building the Python protobuf runtime.
+"""
+
+load("@rules_python//python:py_test.bzl", "py_test")
+
+def _remove_cross_repo_path(path):
+    components = path.split("/")
+    if components[0] == "..":
+        return "/".join(components[2:])
+    return path
 
 def _internal_copy_files_impl(ctx):
     strip_prefix = ctx.attr.strip_prefix
@@ -7,10 +17,11 @@ def _internal_copy_files_impl(ctx):
 
     src_dests = []
     for src in ctx.files.srcs:
-        if src.short_path[:len(strip_prefix)] != strip_prefix:
+        short_path = _remove_cross_repo_path(src.short_path)
+        if short_path[:len(strip_prefix)] != strip_prefix:
             fail("Source does not start with %s: %s" %
-                 (strip_prefix, src.short_path))
-        dest = ctx.actions.declare_file(src.short_path[len(strip_prefix):])
+                 (strip_prefix, short_path))
+        dest = ctx.actions.declare_file(short_path[len(strip_prefix):])
         src_dests.append([src, dest])
 
     if ctx.attr.is_windows:
@@ -34,6 +45,7 @@ def _internal_copy_files_impl(ctx):
             mnemonic = "InternalCopyFile",
             progress_message = "Copying files",
             use_default_shell_env = True,
+            toolchain = None,
         )
 
     else:
@@ -54,6 +66,7 @@ def _internal_copy_files_impl(ctx):
             mnemonic = "InternalCopyFile",
             progress_message = "Copying files",
             use_default_shell_env = True,
+            toolchain = None,
         )
 
     return [
@@ -114,9 +127,12 @@ def internal_py_test(deps = [], **kwargs):
       deps: any additional dependencies of the test.
       **kwargs: arguments forwarded to py_test.
     """
-    native.py_test(
+    py_test(
         imports = ["."],
-        deps = deps + [":python_test_lib"],
+        deps = deps + [
+            "//python:python_test_lib",
+            "@com_google_absl_py//absl/testing:parameterized",
+        ],
         target_compatible_with = select({
             "@system_python//:supported": [],
             "//conditions:default": ["@platforms//:incompatible"],

@@ -19,6 +19,9 @@ if (echo "$previous_commit_title" | grep -q "^Auto-generate files"); then
   exit 0
 fi
 
+export BAZEL=bazelisk
+export USE_BAZEL_VERSION=7.2.1
+
 ./regenerate_stale_files.sh
 
 # Try to determine the most recent CL or pull request.
@@ -41,4 +44,5 @@ fi
 
 git add -A
 git diff --staged --quiet || git commit -am "$commit_message"
-git push || echo "Conflicting commit hit, retrying in next job..."
+git pull --rebase
+git push --force-with-lease || echo "Conflicting commit hit, retrying in next job..."
