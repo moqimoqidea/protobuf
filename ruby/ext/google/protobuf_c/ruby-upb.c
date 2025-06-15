@@ -6955,18 +6955,6 @@ static const upb_MiniTableEnum* _upb_MiniTableSubs_EnumByField(
   return subs[field->UPB_PRIVATE(submsg_index)].UPB_PRIVATE(subenum);
 }
 
-UPB_NORETURN static void* _upb_Decoder_ErrorJmp(upb_Decoder* d,
-                                                upb_DecodeStatus status) {
-  UPB_ASSERT(status != kUpb_DecodeStatus_Ok);
-  d->status = status;
-  UPB_LONGJMP(d->err, 1);
-}
-
-const char* _upb_FastDecoder_ErrorJmp2(upb_Decoder* d) {
-  UPB_LONGJMP(d->err, 1);
-  return NULL;
-}
-
 static void _upb_Decoder_VerifyUtf8(upb_Decoder* d, const char* buf, int len) {
   if (!_upb_Decoder_VerifyUtf8Inline(buf, len)) {
     _upb_Decoder_ErrorJmp(d, kUpb_DecodeStatus_BadUtf8);
@@ -7618,18 +7606,6 @@ static const char* _upb_Decoder_DecodeToSubMessage(
   return ptr;
 }
 
-UPB_NOINLINE
-const char* _upb_Decoder_CheckRequired(upb_Decoder* d, const char* ptr,
-                                       const upb_Message* msg,
-                                       const upb_MiniTable* m) {
-  UPB_ASSERT(m->UPB_PRIVATE(required_count));
-  if (UPB_UNLIKELY(d->options & kUpb_DecodeOption_CheckRequired)) {
-    d->missing_required =
-        !UPB_PRIVATE(_upb_Message_IsInitializedShallow)(msg, m);
-  }
-  return ptr;
-}
-
 static const char* upb_Decoder_SkipField(upb_Decoder* d, const char* ptr,
                                          uint32_t tag) {
   int field_number = tag >> 3;
@@ -8232,13 +8208,6 @@ static upb_DecodeStatus _upb_Decoder_DecodeTop(struct upb_Decoder* d,
   return kUpb_DecodeStatus_Ok;
 }
 
-UPB_NOINLINE
-const char* _upb_Decoder_IsDoneFallback(upb_EpsCopyInputStream* e,
-                                        const char* ptr, int overrun) {
-  return _upb_EpsCopyInputStream_IsDoneFallbackInline(
-      e, ptr, overrun, _upb_Decoder_BufferFlipCallback);
-}
-
 static upb_DecodeStatus upb_Decoder_Decode(upb_Decoder* const decoder,
                                            const char* const buf,
                                            upb_Message* const msg,
@@ -8451,6 +8420,65 @@ static char* encode_fixed32(char* ptr, upb_encstate* e, uint32_t val) {
 
 #define UPB_PB_VARINT_MAX_LEN 10
 
+// Need gnu extended inline asm; msan can't instrument stores in inline assembly
+#if defined(__aarch64__) && (defined(__GNUC__) || defined(__clang__)) && \
+    !UPB_HAS_FEATURE(memory_sanitizer)
+#define UPB_ARM64_ASM
+#endif
+
+#ifdef UPB_ARM64_ASM
+UPB_NOINLINE static char* encode_longvarint_arm64(char* ptr, upb_encstate* e,
+                                                  uint64_t val) {
+  ptr = encode_reserve(ptr, e, UPB_PB_VARINT_MAX_LEN);
+  uint64_t clz;
+  __asm__("clz %[cnt], %[val]\n" : [cnt] "=r"(clz) : [val] "r"(val));
+
+  uint32_t skip =
+      UPB_PRIVATE(upb_WireWriter_VarintUnusedSizeFromLeadingZeros64)(clz);
+
+  ptr += skip;
+  uint64_t addr, mask;
+  __asm__ volatile(
+      "adr %[addr], 0f\n"
+      // Each arm64 instruction encodes to 4 bytes, and it takes two
+      // intructions to process each byte of output, so we branch ahead by
+      //  (4 + 4) * skip to avoid the remaining bytes.
+      "add %[addr], %[addr], %[cnt], lsl #3\n"
+      "mov %w[mask], #0x80\n"
+      "br %[addr]\n"
+      "0:\n"
+      // We don't need addr any more, but we've got the register for our whole
+      // assembly block so we'll use it as scratch to store the shift+masked
+      // values before storing them.
+      // The following stores are unsigned offset stores:
+      // strb Wt, [Xn, #imm]
+      "orr %[addr], %[mask], %[val], lsr #56\n"
+      "strb %w[addr], [%[ptr], #8]\n"
+      "orr %[addr], %[mask], %[val], lsr #49\n"
+      "strb %w[addr], [%[ptr], #7]\n"
+      "orr %[addr], %[mask], %[val], lsr #42\n"
+      "strb %w[addr], [%[ptr], #6]\n"
+      "orr %[addr], %[mask], %[val], lsr #35\n"
+      "strb %w[addr], [%[ptr], #5]\n"
+      "orr %[addr], %[mask], %[val], lsr #28\n"
+      "strb %w[addr], [%[ptr], #4]\n"
+      "orr %w[addr], %w[mask], %w[val], lsr #21\n"
+      "strb %w[addr], [%[ptr], #3]\n"
+      "orr %w[addr], %w[mask], %w[val], lsr #14\n"
+      "strb %w[addr], [%[ptr], #2]\n"
+      "orr %w[addr], %w[mask], %w[val], lsr #7\n"
+      "strb %w[addr], [%[ptr], #1]\n"
+      "orr %w[addr], %w[val], #0x80\n"
+      "strb %w[addr], [%[ptr]]\n"
+      : [addr] "=&r"(addr), [mask] "=&r"(mask)
+      : [val] "r"(val), [ptr] "r"(ptr), [cnt] "r"((uint64_t)skip)
+      : "memory");
+  // Encode the final byte after the continuation bytes.
+  uint32_t continuations = UPB_PB_VARINT_MAX_LEN - 1 - skip;
+  ptr[continuations] = val >> (7 * continuations);
+  return ptr;
+}
+#else
 UPB_NOINLINE
 static char* encode_longvarint(char* ptr, upb_encstate* e, uint64_t val) {
   ptr = encode_reserve(ptr, e, UPB_PB_VARINT_MAX_LEN);
@@ -8465,6 +8493,7 @@ static char* encode_longvarint(char* ptr, upb_encstate* e, uint64_t val) {
   memmove(start, ptr, len);
   return start;
 }
+#endif
 
 UPB_FORCEINLINE
 char* encode_varint(char* ptr, upb_encstate* e, uint64_t val) {
@@ -8473,7 +8502,11 @@ char* encode_varint(char* ptr, upb_encstate* e, uint64_t val) {
     *ptr = val;
     return ptr;
   } else {
+#ifdef UPB_ARM64_ASM
+    return encode_longvarint_arm64(ptr, e, val);
+#else
     return encode_longvarint(ptr, e, val);
+#endif
   }
 }
 
@@ -16921,6 +16954,36 @@ google_protobuf_ServiceDescriptorProto* upb_ServiceDef_ToProto(const upb_Service
                                                       upb_Arena* a) {
   upb_ToProto_Context ctx = {a};
   return upb_ToProto_ConvertServiceDef(&ctx, s);
+}
+
+
+
+// Must be last.
+
+UPB_NOINLINE
+const char* _upb_Decoder_CheckRequired(upb_Decoder* d, const char* ptr,
+                                       const upb_Message* msg,
+                                       const upb_MiniTable* m) {
+  UPB_ASSERT(m->UPB_PRIVATE(required_count));
+  if (UPB_UNLIKELY(d->options & kUpb_DecodeOption_CheckRequired)) {
+    d->missing_required =
+        !UPB_PRIVATE(_upb_Message_IsInitializedShallow)(msg, m);
+  }
+  return ptr;
+}
+
+UPB_NORETURN void* _upb_Decoder_ErrorJmp(upb_Decoder* d,
+                                         upb_DecodeStatus status) {
+  UPB_ASSERT(status != kUpb_DecodeStatus_Ok);
+  d->status = status;
+  UPB_LONGJMP(d->err, 1);
+}
+
+UPB_NOINLINE
+const char* _upb_Decoder_IsDoneFallback(upb_EpsCopyInputStream* e,
+                                        const char* ptr, int overrun) {
+  return _upb_EpsCopyInputStream_IsDoneFallbackInline(
+      e, ptr, overrun, _upb_Decoder_BufferFlipCallback);
 }
 
 // This should #undef all macros #defined in def.inc
